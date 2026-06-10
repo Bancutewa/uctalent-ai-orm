@@ -1,19 +1,20 @@
 export interface Review {
   id: string;
-  authorName: string;
+  author_name: string;
   rating: number;
   content: string;
   source: string; // e.g., 'google', 'facebook'
-  createdAt: string | Date;
+  created_at: string;
   url?: string;
-  reply?: Reply;
+  replies?: Reply[];
 }
 
 export interface Reply {
   id: string;
-  reviewId: string;
+  review_id: string;
   content: string;
   status: 'pending' | 'approved' | 'rejected' | 'published';
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  is_selected: boolean;
+  created_at: string;
+  updated_at: string;
 }
