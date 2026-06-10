@@ -43,24 +43,26 @@ export function FetchPreviewDialog({
             <MapPin className="h-5 w-5 text-primary" />
             {place_info.title}
           </DialogTitle>
-          <DialogDescription className="flex flex-wrap items-center gap-2 pt-1">
-            {place_info.address && <span>{place_info.address}</span>}
-            {place_info.type && (
-              <Badge variant="outline" className="text-xs">
-                {place_info.type}
-              </Badge>
-            )}
-            {place_info.rating && (
-              <span className="flex items-center gap-1 text-amber-500 font-medium">
-                <Star className="h-3.5 w-3.5 fill-amber-500" />
-                {place_info.rating}
-              </span>
-            )}
-            {place_info.reviews && (
-              <span className="text-muted-foreground">
-                ({place_info.reviews.toLocaleString()} {t("header.reviews").toLowerCase()})
-              </span>
-            )}
+          <DialogDescription asChild>
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-muted-foreground">
+              {place_info.address && <span>{place_info.address}</span>}
+              {place_info.type && (
+                <Badge variant="outline" className="text-xs">
+                  {place_info.type}
+                </Badge>
+              )}
+              {place_info.rating && (
+                <span className="flex items-center gap-1 text-amber-500 font-medium">
+                  <Star className="h-3.5 w-3.5 fill-amber-500" />
+                  {place_info.rating}
+                </span>
+              )}
+              {place_info.reviews && (
+                <span>
+                  ({place_info.reviews.toLocaleString()} {t("header.reviews").toLowerCase()})
+                </span>
+              )}
+            </div>
           </DialogDescription>
         </DialogHeader>
 

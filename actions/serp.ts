@@ -72,3 +72,43 @@ export async function fetchReviewsAction(placeId: string) {
     };
   }
 }
+
+export async function searchPlacesAction(query: string) {
+  try {
+    if (!query || query.trim() === "") {
+      return {
+        success: false as const,
+        error: "Search query is required",
+      };
+    }
+
+    const response = await getJson({
+      engine: "google_maps",
+      q: query,
+      hl: "vi",
+      api_key: serpConfig.apiKey,
+    });
+
+    if (response.error) {
+      return { success: false as const, error: response.error };
+    }
+
+    const results = (response.local_results ?? []).map((r: any) => ({
+      title: r.title,
+      place_id: r.place_id,
+      address: r.address,
+      rating: r.rating,
+      reviews: r.reviews,
+      type: r.type,
+    }));
+
+    return { success: true as const, data: results };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("SerpApi Search Error:", error);
+    return {
+      success: false as const,
+      error: errorMessage || "Đã có lỗi xảy ra khi gọi SerpApi (Search)",
+    };
+  }
+}

@@ -57,3 +57,12 @@ export interface FetchPreviewData {
   place_info: SerpPlaceInfo;
   reviews: SerpReview[];
 }
+
+export interface SerpLocalResult {
+  title: string;
+  place_id: string;
+  address?: string;
+  rating?: number;
+  reviews?: number;
+  type?: string;
+}

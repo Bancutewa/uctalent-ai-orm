@@ -33,6 +33,15 @@ export const translations = {
         placeholder: "Nhập Google Place ID",
         button: "Lấy Review",
         loading: "Đang tải...",
+        searchBtn: "Tìm địa điểm",
+      },
+      searchDialog: {
+        title: "Tìm kiếm địa điểm",
+        placeholder: "Nhập tên địa điểm (VD: Khách sạn Đà Lạt)",
+        button: "Tìm kiếm",
+        empty: "Không tìm thấy địa điểm nào.",
+        selectBtn: "Chọn",
+        searching: "Đang tìm kiếm...",
       },
       savedPlaces: {
         title: "Địa điểm đã lưu",
@@ -115,6 +124,15 @@ export const translations = {
         placeholder: "Enter Google Place ID",
         button: "Fetch Reviews",
         loading: "Loading...",
+        searchBtn: "Search Place",
+      },
+      searchDialog: {
+        title: "Search Place",
+        placeholder: "Enter place name (e.g. Hotel Da Lat)",
+        button: "Search",
+        empty: "No places found.",
+        selectBtn: "Select",
+        searching: "Searching...",
       },
       savedPlaces: {
         title: "Saved Locations",
