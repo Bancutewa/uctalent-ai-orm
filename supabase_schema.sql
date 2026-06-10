@@ -4,11 +4,14 @@ create extension if not exists "uuid-ossp";
 -- 1. Create reviews table
 create table public.reviews (
   id uuid primary key default uuid_generate_v4(),
+  review_id text unique,
   author_name text not null,
+  author_avatar text,
   rating smallint not null check (rating >= 1 and rating <= 5),
   content text not null,
   source text not null default 'google',
   url text,
+  images text[],
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -52,3 +55,26 @@ create trigger handle_replies_updated_at
   before update on public.replies
   for each row
   execute function public.handle_updated_at();
+
+-- ============================================
+-- 7. Places table (stores Google Maps place info)
+-- ============================================
+create table if not exists public.places (
+  id text primary key,            -- Google Place ID (e.g. "ChIJh-6MUZ...")
+  title text not null,
+  address text,
+  rating numeric(2,1),
+  total_reviews integer default 0,
+  type text,
+  created_at timestamptz default now() not null
+);
+
+-- RLS for places
+alter table public.places enable row level security;
+create policy "Enable read for all" on public.places for select using (true);
+create policy "Enable insert for all" on public.places for insert with check (true);
+create policy "Enable update for all" on public.places for update using (true);
+
+-- 8. Add place_id FK to reviews
+alter table public.reviews add column if not exists place_id text references public.places(id);
+create index if not exists idx_reviews_place_id on public.reviews(place_id);

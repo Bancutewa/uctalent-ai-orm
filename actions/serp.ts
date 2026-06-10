@@ -6,10 +6,12 @@ import { getJson } from "serpapi";
 export async function fetchReviewsAction(placeId: string) {
   try {
     if (!placeId) {
-      return { success: false, error: "Place ID is required" };
+      return {
+        success: false as const,
+        error: "Place ID is required",
+      };
     }
 
-    // Dùng SDK có sẵn của SerpApi thay vì tự nối chuỗi URL và dùng fetch
     const response = await getJson({
       engine: "google_maps_reviews",
       place_id: placeId,
@@ -19,25 +21,39 @@ export async function fetchReviewsAction(placeId: string) {
     });
 
     if (response.error) {
-      return { success: false, error: response.error };
+      return { success: false as const, error: response.error };
     }
 
-    const reviews = (response.reviews ?? [])
-      .slice(0, 5)
-      .map((r: any) => ({
-        author_name: r.user?.name ?? "Ẩn danh",
-        rating: r.rating,
-        content: r.snippet ?? "Không có nội dung",
-        source: "google",
-        url: r.user?.link,
-        created_at: r.iso_date ? new Date(r.iso_date).toISOString() : new Date().toISOString(),
-      }));
+    const rawPlace = response.place_info ?? {};
+    const place_info = {
+      title: rawPlace.title ?? "Không rõ tên",
+      address: rawPlace.address,
+      rating: rawPlace.rating,
+      reviews: rawPlace.reviews,
+      type: rawPlace.type,
+    };
 
-    return { success: true, data: reviews };
+    const reviews = (response.reviews ?? [])
+       .slice(0, 5)
+       .map((r: any) => ({
+         review_id: r.review_id,
+         author_name: r.user?.name ?? "Ẩn danh",
+         author_avatar: r.user?.thumbnail,
+         rating: r.rating,
+         content: r.snippet ?? "",
+         source: "google",
+         url: r.user?.link,
+         created_at: r.iso_date
+           ? new Date(r.iso_date).toISOString()
+           : new Date().toISOString(),
+         images: r.images ?? [],
+       }));
+
+    return { success: true as const, data: { place_info, reviews } };
   } catch (error: any) {
     console.error("SerpApi Error:", error);
     return {
-      success: false,
+      success: false as const,
       error: error.message || "Đã có lỗi xảy ra khi gọi SerpApi",
     };
   }

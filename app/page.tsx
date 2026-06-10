@@ -1,46 +1,67 @@
-import { getReviews } from "@/actions/db";
+import { getPlaces } from "@/actions/db";
 import { StatsBar } from "@/components/dashboard/stats-bar";
-import { ReviewCard } from "@/components/dashboard/review-card";
-import { Review } from "@/lib/types";
+import { PlaceCard } from "@/components/dashboard/place-card";
+import { FetchBar } from "@/components/dashboard/fetch-bar";
+import type { Place } from "@/lib/types";
 
-export const revalidate = 0; // Disable caching to fetch fresh data from DB
+export const revalidate = 0;
 
 export default async function Home() {
-  const result = await getReviews();
-  const reviews: Review[] = result.success && result.data ? (result.data as any[]) : [];
+  const result = await getPlaces();
+  const places: Place[] =
+    result.success && result.data ? (result.data as any[]) : [];
 
-  // Calculate dynamic stats
-  const total = reviews.length;
-  const resolved = reviews.filter(r => 
-    r.replies?.some(rep => rep.is_selected && rep.status === "approved")
+  const allReviews = places.flatMap((p) => p.reviews ?? []);
+  const totalReviews = allReviews.length;
+  const resolvedReviews = allReviews.filter((r) =>
+    r.replies?.some(
+      (rep) => rep.is_selected && rep.status === "approved",
+    ),
   ).length;
-  const pending = total - resolved;
+  const pendingReviews = totalReviews - resolvedReviews;
 
   return (
     <main className="flex-1 flex flex-col gap-6 p-4 md:p-8 pt-6 max-w-7xl mx-auto w-full">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Dashboard
+        </h1>
         <p className="text-muted-foreground">
-          Overview of your Google Reviews and AI replies.
+          Quản lý đánh giá Google Maps và phản hồi AI cho các địa
+          điểm.
         </p>
       </div>
-      
-      <StatsBar total={total} pending={pending} resolved={resolved} />
-      
+
+      <StatsBar
+        totalPlaces={places.length}
+        total={totalReviews}
+        pending={pendingReviews}
+        resolved={resolvedReviews}
+      />
+
+      <FetchBar />
+
       <div className="flex flex-col gap-4 mt-2">
         <div className="flex items-center justify-between border-b border-border/40 pb-4">
-          <h2 className="text-xl font-semibold tracking-tight">Recent Reviews</h2>
-          <span className="text-xs text-muted-foreground">Sorted by newest</span>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Địa điểm đã lưu
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {places.length} địa điểm
+          </span>
         </div>
-        
-        {reviews.length === 0 ? (
+
+        {places.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 border border-dashed border-border/60 rounded-xl bg-card/10">
-            <p className="text-muted-foreground text-sm">No reviews found. Try seeding the database first.</p>
+            <p className="text-muted-foreground text-sm">
+              Chưa có địa điểm nào. Hãy nhập Place ID ở trên để bắt
+              đầu lấy đánh giá.
+            </p>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {reviews.map((review) => (
-              <ReviewCard key={review.id} review={review} />
+          <div className="flex flex-col gap-4">
+            {places.map((place) => (
+              <PlaceCard key={place.id} place={place} />
             ))}
           </div>
         )}
