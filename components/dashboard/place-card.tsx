@@ -21,7 +21,7 @@ export function PlaceCard({ place }: PlaceCardProps) {
   const reviews = place.reviews ?? [];
   const totalReviews = reviews.length;
   const resolvedCount = reviews.filter(r =>
-    r.replies?.some(rep => rep.is_selected && rep.status === "approved")
+    r.replies?.some(rep => rep.status === "approved")
   ).length;
   const pendingCount = totalReviews - resolvedCount;
 

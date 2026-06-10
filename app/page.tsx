@@ -15,7 +15,7 @@ export default async function Home() {
   const totalReviews = allReviews.length;
   const resolvedReviews = allReviews.filter((r) =>
     r.replies?.some(
-      (rep) => rep.is_selected && rep.status === "approved",
+      (rep) => rep.status === "approved",
     ),
   ).length;
   const pendingReviews = totalReviews - resolvedReviews;

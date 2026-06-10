@@ -29,7 +29,6 @@ export interface Reply {
   review_id: string;
   content: string;
   status: "pending" | "approved" | "rejected" | "published";
-  is_selected: boolean;
   created_at: string;
   updated_at: string;
 }

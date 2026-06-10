@@ -81,7 +81,7 @@ export async function confirmSaveReviews(
 // QUERY functions
 // ==========================================
 
-// Lấy danh sách places kèm count reviews
+// Lấy danh sách places kèm reviews và replies
 export async function getPlaces() {
   try {
     const { data, error } = await supabase
@@ -89,7 +89,10 @@ export async function getPlaces() {
       .select(
         `
         *,
-        reviews (*)
+        reviews (
+          *,
+          replies (*)
+        )
       `,
       )
       .order("created_at", { ascending: false });
@@ -102,6 +105,7 @@ export async function getPlaces() {
     return { success: false as const, error: error.message };
   }
 }
+
 
 // Lấy reviews theo place_id kèm replies
 export async function getReviewsByPlace(placeId: string) {
@@ -130,52 +134,35 @@ export async function getReviewsByPlace(placeId: string) {
 // APPROVE flow (Epic 4)
 // ==========================================
 
-// Cập nhật trạng thái approve cho reply
-export async function approveReply(
-  reviewId: string,
-  replyId: string,
-) {
+// Lưu duy nhất 1 câu trả lời AI được chọn vào bảng replies và đánh dấu là approved
+export async function saveAndApproveReply(reviewId: string, content: string) {
   try {
+    // 1. Xóa các replies cũ của review này để tránh rác DB (chỉ giữ duy nhất 1 câu đã duyệt)
+    const { error: deleteError } = await supabase
+      .from("replies")
+      .delete()
+      .eq("review_id", reviewId);
+
+    if (deleteError) throw deleteError;
+
+    // 2. Insert câu trả lời được duyệt
     const { data, error } = await supabase
       .from("replies")
-      .update({ status: "approved", is_selected: true })
-      .eq("id", replyId)
-      .eq("review_id", reviewId)
+      .insert({
+        review_id: reviewId,
+        content,
+        status: "approved",
+      })
       .select();
 
     if (error) throw error;
 
+    // 3. Kích hoạt revalidate để cập nhật UI
     revalidatePath("/");
-    return { success: true as const, data };
-  } catch (error: any) {
-    console.error("Error approving reply:", error);
-    return { success: false as const, error: error.message };
-  }
-}
-
-// Lưu 3 câu trả lời AI vào bảng replies
-export async function saveGeneratedReplies(
-  reviewId: string,
-  repliesContent: string[],
-) {
-  try {
-    const repliesToInsert = repliesContent.map((content) => ({
-      review_id: reviewId,
-      content,
-      status: "pending",
-      is_selected: false,
-    }));
-
-    const { data, error } = await supabase
-      .from("replies")
-      .insert(repliesToInsert)
-      .select();
-
-    if (error) throw error;
 
     return { success: true as const, data };
   } catch (error: any) {
-    console.error("Error saving generated replies:", error);
+    console.error("Error saving and approving reply:", error);
     return { success: false as const, error: error.message };
   }
 }

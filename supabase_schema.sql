@@ -21,7 +21,6 @@ create table public.replies (
   review_id uuid not null references public.reviews(id) on delete cascade,
   content text not null,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected', 'published')),
-  is_selected boolean not null default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
