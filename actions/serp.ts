@@ -3,6 +3,19 @@
 import { serpConfig } from "@/config/serp";
 import { getJson } from "serpapi";
 
+interface SerpApiReviewRaw {
+  review_id: string;
+  user?: {
+    name?: string;
+    thumbnail?: string;
+    link?: string;
+  };
+  rating: number;
+  snippet?: string;
+  iso_date?: string;
+  images?: string[];
+}
+
 export async function fetchReviewsAction(placeId: string) {
   try {
     if (!placeId) {
@@ -35,7 +48,7 @@ export async function fetchReviewsAction(placeId: string) {
 
     const reviews = (response.reviews ?? [])
        .slice(0, 5)
-       .map((r: any) => ({
+       .map((r: SerpApiReviewRaw) => ({
          review_id: r.review_id,
          author_name: r.user?.name ?? "Ẩn danh",
          author_avatar: r.user?.thumbnail,
@@ -50,11 +63,12 @@ export async function fetchReviewsAction(placeId: string) {
        }));
 
     return { success: true as const, data: { place_info, reviews } };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("SerpApi Error:", error);
     return {
       success: false as const,
-      error: error.message || "Đã có lỗi xảy ra khi gọi SerpApi",
+      error: errorMessage || "Đã có lỗi xảy ra khi gọi SerpApi",
     };
   }
 }

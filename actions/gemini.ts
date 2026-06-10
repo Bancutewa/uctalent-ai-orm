@@ -102,12 +102,13 @@ Hãy viết đúng 3 phương án phản hồi với 3 phong cách khác nhau:
         fixing: string;
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Gemini Generate Replies Error:", error);
     return {
       success: false as const,
       error:
-        error.message || "Không thể tạo phản hồi tự động bằng AI.",
+        errorMessage || "Không thể tạo phản hồi tự động bằng AI.",
     };
   }
 }

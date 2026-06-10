@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { generateRepliesAction } from "@/actions/gemini";
 import { saveAndApproveReply } from "@/actions/db";
+import { useLanguage } from "@/lib/language-context";
 import { Review } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -73,6 +74,7 @@ export function AIReplyDialog({
   review,
   onApproved,
 }: AIReplyDialogProps) {
+  const { t, locale } = useLanguage();
   const [replies, setReplies] = useState<GeneratedReplies | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
@@ -80,23 +82,37 @@ export function AIReplyDialog({
   const [copiedKey, setCopiedKey] = useState<TabKey | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const getTabLabel = (key: TabKey) => {
+    if (key === "standard") return t("dashboard.aiDialog.standardTab");
+    if (key === "friendly") return t("dashboard.aiDialog.friendlyTab");
+    return t("dashboard.aiDialog.apologeticTab");
+  };
+
   // Auto-generate when dialog opens
   useEffect(() => {
     if (!open) return;
-    setReplies(null);
-    setGenError(null);
-    setIsGenerating(true);
+    
+    // Defer the loading state to avoid synchronous state update in render/effect phase
+    const timer = setTimeout(() => {
+      setIsGenerating(true);
+    }, 0);
 
     generateRepliesAction(review.content, review.rating)
       .then((result) => {
         if (result.success) {
           setReplies(result.data);
         } else {
-          setGenError(result.error ?? "Không thể tạo phản hồi.");
+          setGenError(result.error ?? t("dashboard.aiDialog.error"));
         }
       })
       .finally(() => setIsGenerating(false));
-  }, [open, review.content]);
+
+    return () => {
+      clearTimeout(timer);
+      setReplies(null);
+      setGenError(null);
+    };
+  }, [open, review.content, review.rating, t]);
 
   const handleCopy = async (key: TabKey) => {
     if (!replies) return;
@@ -111,18 +127,18 @@ export function AIReplyDialog({
     startTransition(async () => {
       const selectedContent = replies[selectedKey];
 
-      // Lưu duy nhất phản hồi đã chọn và duyệt luôn
+      // Save and approve the selected reply
       const result = await saveAndApproveReply(review.id, selectedContent);
 
       if (!result.success) {
-        toast.error("Lỗi duyệt phản hồi", {
+        toast.error(t("dashboard.aiDialog.errorToast"), {
           description: result.error,
         });
         return;
       }
 
-      toast.success("Phản hồi đã được duyệt!", {
-        description: `Phong cách: ${TAB_CONFIG.find((t) => t.key === selectedKey)?.label}`,
+      toast.success(t("dashboard.aiDialog.successToast"), {
+        description: t("dashboard.aiDialog.successToastDesc", { style: getTabLabel(selectedKey) }),
       });
 
       onOpenChange(false);
@@ -144,10 +160,11 @@ export function AIReplyDialog({
             </div>
             <div>
               <DialogTitle className="text-base font-semibold leading-tight">
-                Phản hồi AI
+                {t("dashboard.aiDialog.title")}
               </DialogTitle>
               <DialogDescription className="text-xs mt-0.5 leading-relaxed">
-                Của <span className="font-medium text-foreground/80">{review.author_name}</span>
+                {locale === "vi" ? "Của" : "By"}{" "}
+                <span className="font-medium text-foreground/80">{review.author_name}</span>
               </DialogDescription>
             </div>
           </div>
@@ -164,7 +181,7 @@ export function AIReplyDialog({
           {isGenerating && (
             <div className="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm animate-pulse">Đang tạo phản hồi AI…</p>
+              <p className="text-sm animate-pulse">{t("dashboard.aiDialog.generating")}</p>
             </div>
           )}
 
@@ -182,12 +199,12 @@ export function AIReplyDialog({
                   generateRepliesAction(review.content, review.rating)
                     .then((r) => {
                       if (r.success) setReplies(r.data);
-                      else setGenError(r.error ?? "Lỗi không xác định.");
+                      else setGenError(r.error ?? t("dashboard.aiDialog.error"));
                     })
                     .finally(() => setIsGenerating(false));
                 }}
               >
-                Thử lại
+                {t("dashboard.aiDialog.retry")}
               </Button>
             </div>
           )}
@@ -199,14 +216,14 @@ export function AIReplyDialog({
               onValueChange={(v) => setActiveTab(v as TabKey)}
             >
               <TabsList className="w-full bg-muted/40 border border-border/30">
-                {TAB_CONFIG.map(({ key, label, Icon }) => (
+                {TAB_CONFIG.map(({ key, Icon }) => (
                   <TabsTrigger
                     key={key}
                     value={key}
                     className="flex-1 flex items-center gap-1.5 text-xs"
                   >
                     <Icon className="h-3.5 w-3.5" />
-                    {label}
+                    {getTabLabel(key)}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -221,7 +238,7 @@ export function AIReplyDialog({
                     <button
                       onClick={() => handleCopy(key)}
                       className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
-                      title="Sao chép"
+                      title={t("dashboard.aiDialog.copyTooltip")}
                     >
                       {copiedKey === key ? (
                         <Check className={`h-4 w-4 ${accent}`} />
@@ -241,7 +258,7 @@ export function AIReplyDialog({
                     ) : (
                       <CheckCircle className="h-4 w-4" />
                     )}
-                    Dùng câu này
+                    {t("dashboard.aiDialog.useReplyBtn")}
                   </Button>
                 </TabsContent>
               ))}

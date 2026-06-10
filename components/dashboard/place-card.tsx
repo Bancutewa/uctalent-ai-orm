@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, ChevronDown, ChevronUp, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { ReviewCard } from "@/components/dashboard/review-card";
+import { useLanguage } from "@/lib/language-context";
 import type { Place, Review } from "@/lib/types";
 
 interface PlaceCardProps {
@@ -13,6 +14,7 @@ interface PlaceCardProps {
 }
 
 export function PlaceCard({ place }: PlaceCardProps) {
+  const { t, locale } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -96,12 +98,12 @@ export function PlaceCard({ place }: PlaceCardProps) {
               </Badge>
               {pendingCount > 0 && (
                 <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-xs">
-                  {pendingCount} pending
+                  {t("dashboard.savedPlaces.pendingBadge", { count: pendingCount })}
                 </Badge>
               )}
               {resolvedCount > 0 && (
                 <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-xs">
-                  {resolvedCount} resolved
+                  {t("dashboard.savedPlaces.resolvedBadge", { count: resolvedCount })}
                 </Badge>
               )}
             </div>
@@ -123,13 +125,13 @@ export function PlaceCard({ place }: PlaceCardProps) {
           <div className="border-t border-border/40 pt-4">
             {reviews.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Chưa có đánh giá nào cho địa điểm này.
+                {t("dashboard.savedPlaces.noReviews")}
               </p>
             ) : (
               <div className="relative">
                 {/* Title */}
                 <h4 className="text-sm font-semibold text-muted-foreground mb-3">
-                  Danh sách đánh giá ({reviews.length})
+                  {t("dashboard.savedPlaces.listTitle", { count: reviews.length })}
                 </h4>
 
                 {/* Carousel with side buttons */}
@@ -145,7 +147,7 @@ export function PlaceCard({ place }: PlaceCardProps) {
                           ? "opacity-100 scale-100 pointer-events-auto"
                           : "opacity-0 scale-90 pointer-events-none"
                       }`}
-                      title="Trượt sang trái"
+                      title={locale === "vi" ? "Trượt sang trái" : "Scroll left"}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -162,7 +164,7 @@ export function PlaceCard({ place }: PlaceCardProps) {
                           ? "opacity-100 scale-100 pointer-events-auto"
                           : "opacity-0 scale-90 pointer-events-none"
                       }`}
-                      title="Trượt sang phải"
+                      title={locale === "vi" ? "Trượt sang phải" : "Scroll right"}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>

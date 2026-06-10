@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Save, X } from "lucide-react";
+import Image from "next/image";
+import { useLanguage } from "@/lib/language-context";
 import type { FetchPreviewData } from "@/lib/types";
 
 interface FetchPreviewDialogProps {
@@ -28,6 +30,7 @@ export function FetchPreviewDialog({
   onConfirm,
   isSaving,
 }: FetchPreviewDialogProps) {
+  const { t } = useLanguage();
   if (!data) return null;
 
   const { place_info, reviews } = data;
@@ -55,7 +58,7 @@ export function FetchPreviewDialog({
             )}
             {place_info.reviews && (
               <span className="text-muted-foreground">
-                ({place_info.reviews.toLocaleString()} đánh giá)
+                ({place_info.reviews.toLocaleString()} {t("header.reviews").toLowerCase()})
               </span>
             )}
           </DialogDescription>
@@ -64,13 +67,13 @@ export function FetchPreviewDialog({
         {/* Reviews preview list */}
         <div className="flex flex-col gap-3 py-2">
           <p className="text-sm font-medium text-muted-foreground">
-            {reviews.length} đánh giá sẽ được lưu:
+            {t("dashboard.previewDialog.reviewsToSave", { count: reviews.length })}
           </p>
 
           {reviews.length === 0 ? (
             <div className="p-6 border border-dashed border-border/60 rounded-lg text-center">
               <p className="text-sm text-muted-foreground">
-                Không tìm thấy đánh giá nào cho địa điểm này.
+                {t("dashboard.previewDialog.noReviews")}
               </p>
             </div>
           ) : (
@@ -83,11 +86,13 @@ export function FetchPreviewDialog({
                   <div className="flex items-center justify-between mb-1.5 gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       {review.author_avatar ? (
-                        <img
+                        <Image
                           src={review.author_avatar}
                           alt={review.author_name}
+                          width={24}
+                          height={24}
+                          unoptimized
                           className="h-6 w-6 rounded-full object-cover border border-border/60 bg-muted shrink-0"
-                          referrerPolicy="no-referrer"
                         />
                       ) : (
                         <div className="h-6 w-6 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-semibold text-[10px] shrink-0">
@@ -124,11 +129,13 @@ export function FetchPreviewDialog({
                           key={i}
                           className="relative h-10 w-10 rounded-md overflow-hidden border border-border/40 shrink-0 snap-start bg-muted"
                         >
-                          <img
+                          <Image
                             src={imgUrl}
                             alt={`Review image ${i + 1}`}
+                            width={40}
+                            height={40}
+                            unoptimized
                             className="h-full w-full object-cover cursor-pointer"
-                            referrerPolicy="no-referrer"
                             onClick={() =>
                               window.open(imgUrl, "_blank")
                             }
@@ -160,7 +167,7 @@ export function FetchPreviewDialog({
             disabled={isSaving}
           >
             <X className="h-4 w-4 mr-1.5" />
-            Hủy
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={onConfirm}
@@ -169,8 +176,8 @@ export function FetchPreviewDialog({
           >
             <Save className="h-4 w-4 mr-1.5" />
             {isSaving
-              ? "Đang lưu..."
-              : `Xác nhận lưu ${reviews.length} đánh giá`}
+              ? t("dashboard.previewDialog.saving")
+              : t("dashboard.previewDialog.confirmBtn", { count: reviews.length })}
           </Button>
         </DialogFooter>
       </DialogContent>

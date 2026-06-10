@@ -7,16 +7,17 @@ import { fetchPlacePreview, confirmSaveReviews } from "@/actions/db";
 import { FetchPreviewDialog } from "@/components/dashboard/fetch-preview-dialog";
 import { Download, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/language-context";
 import type { FetchPreviewData } from "@/lib/types";
 
 export function FetchBar() {
+  const { t } = useLanguage();
   const [placeId, setPlaceId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [previewData, setPreviewData] =
     useState<FetchPreviewData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  // Lưu placeId đang preview để dùng khi confirm
   const [previewPlaceId, setPreviewPlaceId] = useState("");
 
   // Step 1: Fetch preview
@@ -24,7 +25,7 @@ export function FetchBar() {
     e.preventDefault();
     const id = placeId.trim();
     if (!id) {
-      toast.error("Vui lòng nhập Google Place ID");
+      toast.error(t("dashboard.fetchBar.placeholder"));
       return;
     }
 
@@ -36,16 +37,16 @@ export function FetchBar() {
         setPreviewPlaceId(id);
         setDialogOpen(true);
       } else {
-        toast.error(result.error || "Không lấy được dữ liệu");
+        toast.error(result.error || t("dashboard.aiDialog.error"));
       }
     } catch {
-      toast.error("Không thể kết nối đến Google Maps");
+      toast.error(t("dashboard.aiDialog.error"));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Step 2: User xác nhận → lưu vào DB
+  // Step 2: User confirm → save to DB
   const handleConfirmSave = async () => {
     if (!previewData) return;
 
@@ -62,10 +63,10 @@ export function FetchBar() {
         setPreviewData(null);
         setPlaceId("");
       } else {
-        toast.error(result.error || "Không thể lưu");
+        toast.error(result.error || t("dashboard.aiDialog.errorToast"));
       }
     } catch {
-      toast.error("Đã xảy ra lỗi khi lưu");
+      toast.error(t("dashboard.aiDialog.errorToast"));
     } finally {
       setIsSaving(false);
     }
@@ -79,12 +80,10 @@ export function FetchBar() {
           <div className="flex flex-col gap-1.5">
             <h3 className="font-semibold text-base tracking-tight flex items-center gap-1.5 text-foreground">
               <Sparkles className="h-4 w-4 text-primary" />
-              Lấy đánh giá từ Google Maps
+              {t("dashboard.fetchBar.title")}
             </h3>
             <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
-              Nhập Google Place ID để xem trước và lưu đánh giá mới
-              nhất. Hệ thống sẽ hiển thị thông tin địa điểm trước khi
-              bạn xác nhận lưu.
+              {t("dashboard.fetchBar.desc")}
             </p>
           </div>
 
@@ -95,7 +94,7 @@ export function FetchBar() {
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
               <Input
-                placeholder="Nhập Google Place ID"
+                placeholder={t("dashboard.fetchBar.placeholder")}
                 value={placeId}
                 onChange={(e) => setPlaceId(e.target.value)}
                 className="pl-10 pr-4 bg-background/40"
@@ -110,7 +109,7 @@ export function FetchBar() {
               <Download
                 className={`h-4 w-4 ${isLoading ? "animate-bounce" : ""}`}
               />
-              {isLoading ? "Đang tải..." : "Lấy Review"}
+              {isLoading ? t("dashboard.fetchBar.loading") : t("dashboard.fetchBar.button")}
             </Button>
           </form>
         </div>

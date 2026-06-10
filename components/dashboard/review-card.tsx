@@ -17,6 +17,8 @@ import {
   Globe,
   CheckCircle,
 } from "lucide-react";
+import Image from "next/image";
+import { useLanguage } from "@/lib/language-context";
 import { Review } from "@/lib/types";
 import { AIReplyDialog } from "@/components/dashboard/ai-reply-dialog";
 
@@ -25,6 +27,7 @@ interface ReviewCardProps {
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
+  const { t } = useLanguage();
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -48,11 +51,13 @@ export function ReviewCard({ review }: ReviewCardProps) {
             <div className="flex flex-col gap-2 min-w-0">
               <div className="flex items-center gap-2.5 min-w-0">
                 {review.author_avatar ? (
-                  <img
+                  <Image
                     src={review.author_avatar}
                     alt={review.author_name}
+                    width={36}
+                    height={36}
+                    unoptimized
                     className="h-9 w-9 rounded-full object-cover border border-border/60 bg-muted shrink-0"
-                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-semibold text-sm shrink-0">
@@ -95,14 +100,14 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 gap-1 hover:bg-emerald-500/15"
               >
                 <CheckCircle className="h-3.5 w-3.5" />
-                Resolved
+                {t("dashboard.reviewCard.resolved")}
               </Badge>
             ) : (
               <Badge
                 variant="outline"
                 className="bg-amber-500/10 text-amber-500 border border-amber-500/20 gap-1 hover:bg-amber-500/15"
               >
-                Pending
+                {t("dashboard.reviewCard.pending")}
               </Badge>
             )}
           </CardHeader>
@@ -111,7 +116,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
             <p className="text-sm text-foreground/80 leading-relaxed break-words whitespace-pre-line">
               {review.content || (
                 <span className="italic text-muted-foreground">
-                  Không đánh giá.
+                  {t("dashboard.reviewCard.noContent")}
                 </span>
               )}
             </p>
@@ -122,11 +127,13 @@ export function ReviewCard({ review }: ReviewCardProps) {
                     key={i}
                     className="relative h-14 w-14 rounded-lg overflow-hidden border border-border/40 shrink-0 snap-start bg-muted"
                   >
-                    <img
+                    <Image
                       src={imgUrl}
                       alt={`Review image ${i + 1}`}
+                      width={56}
+                      height={56}
+                      unoptimized
                       className="h-full w-full object-cover transition-transform duration-300 hover:scale-110 cursor-pointer"
-                      referrerPolicy="no-referrer"
                       onClick={() => window.open(imgUrl, "_blank")}
                     />
                   </div>
@@ -149,7 +156,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 rel="noopener noreferrer"
                 className="text-primary hover:underline transition-colors"
               >
-                View Source
+                {t("dashboard.reviewCard.viewSource")}
               </a>
             )}
           </div>
@@ -159,10 +166,10 @@ export function ReviewCard({ review }: ReviewCardProps) {
             <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/10 p-3 mt-1">
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <span className="text-xs font-semibold text-emerald-500">
-                  Selected Response
+                  {t("dashboard.reviewCard.selectedResponse")}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  Auto-approved
+                  {t("dashboard.reviewCard.autoApproved")}
                 </span>
               </div>
               <p className="text-xs text-foreground/85 italic leading-relaxed">
@@ -173,8 +180,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
             <div className="flex flex-col gap-2 mt-1">
               {hasReplies && (
                 <p className="text-xs text-muted-foreground italic">
-                  {review.replies!.length} AI options generated. Waiting
-                  approval.
+                  {t("dashboard.reviewCard.aiOptionsCount", { count: review.replies!.length })}
                 </p>
               )}
               <Button
@@ -183,7 +189,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 onClick={() => setDialogOpen(true)}
               >
                 <MessageSquareCode className="h-4 w-4" />
-                Generate AI Reply
+                {t("dashboard.reviewCard.generateBtn")}
               </Button>
             </div>
           )}

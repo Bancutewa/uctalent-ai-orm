@@ -18,9 +18,10 @@ export async function fetchPlacePreview(placeId: string) {
       };
     }
     return { success: true as const, data: result.data };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error fetching preview:", error);
-    return { success: false as const, error: error.message };
+    return { success: false as const, error: errorMessage };
   }
 }
 
@@ -33,7 +34,7 @@ export async function confirmSaveReviews(
   reviews: SerpReview[],
 ) {
   try {
-    // 1. Upsert place (nếu đã tồn tại thì cập nhật info mới)
+    // 1. Upsert place (update if already exists)
     const { error: placeError } = await supabase
       .from("places")
       .upsert(
@@ -64,16 +65,17 @@ export async function confirmSaveReviews(
       if (reviewError) throw reviewError;
     }
 
-    // 3. Revalidate trang
+    // 3. Revalidate page to refresh cache
     revalidatePath("/");
 
     return {
       success: true as const,
       message: `Đã lưu ${reviews.length} đánh giá từ "${placeInfo.title}"`,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error saving reviews:", error);
-    return { success: false as const, error: error.message };
+    return { success: false as const, error: errorMessage };
   }
 }
 
@@ -81,7 +83,7 @@ export async function confirmSaveReviews(
 // QUERY functions
 // ==========================================
 
-// Lấy danh sách places kèm reviews và replies
+// Get all places with their reviews and replies
 export async function getPlaces() {
   try {
     const { data, error } = await supabase
@@ -100,14 +102,15 @@ export async function getPlaces() {
     if (error) throw error;
 
     return { success: true as const, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error fetching places:", error);
-    return { success: false as const, error: error.message };
+    return { success: false as const, error: errorMessage };
   }
 }
 
 
-// Lấy reviews theo place_id kèm replies
+// Get reviews by place ID including replies
 export async function getReviewsByPlace(placeId: string) {
   try {
     const { data, error } = await supabase
@@ -124,9 +127,10 @@ export async function getReviewsByPlace(placeId: string) {
     if (error) throw error;
 
     return { success: true as const, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error fetching reviews:", error);
-    return { success: false as const, error: error.message };
+    return { success: false as const, error: errorMessage };
   }
 }
 
@@ -134,10 +138,10 @@ export async function getReviewsByPlace(placeId: string) {
 // APPROVE flow (Epic 4)
 // ==========================================
 
-// Lưu duy nhất 1 câu trả lời AI được chọn vào bảng replies và đánh dấu là approved
+// Save selected AI reply and mark as approved
 export async function saveAndApproveReply(reviewId: string, content: string) {
   try {
-    // 1. Xóa các replies cũ của review này để tránh rác DB (chỉ giữ duy nhất 1 câu đã duyệt)
+    // 1. Delete old replies for this review to prevent DB clutter
     const { error: deleteError } = await supabase
       .from("replies")
       .delete()
@@ -145,7 +149,7 @@ export async function saveAndApproveReply(reviewId: string, content: string) {
 
     if (deleteError) throw deleteError;
 
-    // 2. Insert câu trả lời được duyệt
+    // 2. Insert the approved reply
     const { data, error } = await supabase
       .from("replies")
       .insert({
@@ -157,12 +161,13 @@ export async function saveAndApproveReply(reviewId: string, content: string) {
 
     if (error) throw error;
 
-    // 3. Kích hoạt revalidate để cập nhật UI
+    // 3. Revalidate path to update UI
     revalidatePath("/");
 
     return { success: true as const, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error saving and approving reply:", error);
-    return { success: false as const, error: error.message };
+    return { success: false as const, error: errorMessage };
   }
 }
