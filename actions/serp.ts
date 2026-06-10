@@ -25,12 +25,12 @@ export async function fetchReviewsAction(placeId: string) {
     const reviews = (response.reviews ?? [])
       .slice(0, 5)
       .map((r: any) => ({
-        review_id: r.review_id,
-        author: r.user?.name ?? "Ẩn danh",
+        author_name: r.user?.name ?? "Ẩn danh",
         rating: r.rating,
-        text: r.snippet ?? "",
-        date: r.iso_date,
-        status: "pending",
+        content: r.snippet ?? "Không có nội dung",
+        source: "google",
+        url: r.user?.link,
+        created_at: r.iso_date ? new Date(r.iso_date).toISOString() : new Date().toISOString(),
       }));
 
     return { success: true, data: reviews };
