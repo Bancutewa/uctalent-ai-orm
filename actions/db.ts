@@ -171,3 +171,75 @@ export async function saveAndApproveReply(reviewId: string, content: string) {
     return { success: false as const, error: errorMessage };
   }
 }
+
+// ==========================================
+// DELETE flows
+// ==========================================
+
+// Delete an approved reply and revert review back to pending
+export async function deleteReplyForReview(reviewId: string) {
+  try {
+    const { error } = await supabase
+      .from("replies")
+      .delete()
+      .eq("review_id", reviewId);
+
+    if (error) throw error;
+
+    revalidatePath("/");
+    return { success: true as const };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error deleting reply:", error);
+    return { success: false as const, error: errorMessage };
+  }
+}
+
+// Delete a place and all its associated reviews and replies
+export async function deletePlace(placeId: string) {
+  try {
+    // 1. Get all review IDs for this place
+    const { data: reviews, error: reviewQueryError } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("place_id", placeId);
+      
+    if (reviewQueryError) throw reviewQueryError;
+    
+    // 2. Delete all replies associated with these reviews
+    if (reviews && reviews.length > 0) {
+      const reviewIds = reviews.map(r => r.id).filter(Boolean);
+      if (reviewIds.length > 0) {
+        const { error: replyDeleteError } = await supabase
+          .from("replies")
+          .delete()
+          .in("review_id", reviewIds);
+          
+        if (replyDeleteError) throw replyDeleteError;
+      }
+    }
+    
+    // 3. Delete all reviews for this place
+    const { error: reviewDeleteError } = await supabase
+      .from("reviews")
+      .delete()
+      .eq("place_id", placeId);
+      
+    if (reviewDeleteError) throw reviewDeleteError;
+
+    // 4. Delete the place itself
+    const { error: placeDeleteError } = await supabase
+      .from("places")
+      .delete()
+      .eq("id", placeId);
+
+    if (placeDeleteError) throw placeDeleteError;
+
+    revalidatePath("/");
+    return { success: true as const };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error deleting place:", error);
+    return { success: false as const, error: errorMessage };
+  }
+}

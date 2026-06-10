@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -11,16 +11,28 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Star,
   MessageSquareCode,
   Calendar,
   Globe,
   CheckCircle,
+  RotateCcw,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/language-context";
 import { Review } from "@/lib/types";
 import { AIReplyDialog } from "@/components/dashboard/ai-reply-dialog";
+import { deleteReplyForReview } from "@/actions/db";
+import { toast } from "sonner";
 
 interface ReviewCardProps {
   review: Review;
@@ -30,6 +42,20 @@ export function ReviewCard({ review }: ReviewCardProps) {
   const { t } = useLanguage();
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleRevoke = () => {
+    startTransition(async () => {
+      const result = await deleteReplyForReview(review.id);
+      if (result.success) {
+        toast.success(t("common.success"));
+        setRevokeDialogOpen(false);
+      } else {
+        toast.error(result.error || t("common.error"));
+      }
+    });
+  };
 
   const approvedReply = review.replies?.find(
     (r) => r.status === "approved",
@@ -168,9 +194,25 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 <span className="text-xs font-semibold text-emerald-500">
                   {t("dashboard.reviewCard.selectedResponse")}
                 </span>
-                <span className="text-[10px] text-muted-foreground">
-                  {t("dashboard.reviewCard.autoApproved")}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground">
+                    {t("dashboard.reviewCard.autoApproved")}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                    onClick={() => setRevokeDialogOpen(true)}
+                    disabled={isPending}
+                    title={t("dashboard.reviewCard.revokeBtn")}
+                  >
+                    {isPending ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
               </div>
               <p className="text-xs text-foreground/85 italic leading-relaxed">
                 &ldquo;{approvedReply.content}&rdquo;
@@ -203,6 +245,35 @@ export function ReviewCard({ review }: ReviewCardProps) {
         review={review}
         onApproved={() => router.refresh()}
       />
+
+      {/* Revoke Confirmation Dialog */}
+      <Dialog open={revokeDialogOpen} onOpenChange={setRevokeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("dashboard.reviewCard.revokeBtn")}</DialogTitle>
+            <DialogDescription>
+              {t("dashboard.reviewCard.revokeConfirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setRevokeDialogOpen(false)}
+              disabled={isPending}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRevoke}
+              disabled={isPending}
+            >
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t("common.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

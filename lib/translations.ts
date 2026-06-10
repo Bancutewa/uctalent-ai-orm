@@ -7,6 +7,7 @@ export const translations = {
       success: "Thành công",
       error: "Lỗi",
       retry: "Thử lại",
+      delete: "Xóa",
     },
     header: {
       reviews: "Đánh giá",
@@ -42,6 +43,7 @@ export const translations = {
         pendingBadge: "{count} chờ duyệt",
         resolvedBadge: "{count} đã xong",
         noReviews: "Chưa có đánh giá nào cho địa điểm này.",
+        deleteConfirm: "Bạn có chắc chắn muốn xóa địa điểm này và toàn bộ đánh giá?",
       },
       reviewCard: {
         resolved: "Resolved",
@@ -52,6 +54,8 @@ export const translations = {
         autoApproved: "Đã duyệt",
         aiOptionsCount: "Đã tạo {count} câu trả lời AI. Chờ duyệt.",
         generateBtn: "Tạo phản hồi AI",
+        revokeBtn: "Thu hồi",
+        revokeConfirm: "Bạn có chắc chắn muốn thu hồi phản hồi này?",
       },
       aiDialog: {
         title: "Phản hồi AI",
@@ -85,6 +89,7 @@ export const translations = {
       success: "Success",
       error: "Error",
       retry: "Retry",
+      delete: "Delete",
     },
     header: {
       reviews: "Reviews",
@@ -120,6 +125,7 @@ export const translations = {
         pendingBadge: "{count} pending",
         resolvedBadge: "{count} resolved",
         noReviews: "No reviews found for this location.",
+        deleteConfirm: "Are you sure you want to delete this place and all its reviews?",
       },
       reviewCard: {
         resolved: "Resolved",
@@ -131,6 +137,8 @@ export const translations = {
         aiOptionsCount:
           "{count} AI options generated. Waiting approval.",
         generateBtn: "Generate AI Reply",
+        revokeBtn: "Revoke Reply",
+        revokeConfirm: "Are you sure you want to revoke this reply?",
       },
       aiDialog: {
         title: "AI Response",

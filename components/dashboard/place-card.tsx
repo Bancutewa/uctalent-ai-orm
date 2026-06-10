@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useTransition } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, ChevronDown, ChevronUp, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Star, MapPin, ChevronDown, ChevronUp, MessageSquare, ChevronLeft, ChevronRight, Trash2, Loader2 } from "lucide-react";
 import { ReviewCard } from "@/components/dashboard/review-card";
+import { deletePlace } from "@/actions/db";
+import { toast } from "sonner";
 import { useLanguage } from "@/lib/language-context";
 import type { Place, Review } from "@/lib/types";
 
@@ -19,6 +29,8 @@ export function PlaceCard({ place }: PlaceCardProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
+  const [isPending, startTransition] = useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const reviews = place.reviews ?? [];
   const totalReviews = reviews.length;
@@ -26,6 +38,18 @@ export function PlaceCard({ place }: PlaceCardProps) {
     r.replies?.some(rep => rep.status === "approved")
   ).length;
   const pendingCount = totalReviews - resolvedCount;
+
+  const handleDeletePlace = () => {
+    startTransition(async () => {
+      const result = await deletePlace(place.id);
+      if (result.success) {
+        toast.success(t("common.success"));
+        setDeleteDialogOpen(false);
+      } else {
+        toast.error(result.error || t("common.error"));
+      }
+    });
+  };
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -108,13 +132,32 @@ export function PlaceCard({ place }: PlaceCardProps) {
               )}
             </div>
 
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              {expanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
+            <div className="flex items-center border-l border-border/40 pl-3 ml-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteDialogOpen(true);
+                }}
+                disabled={isPending}
+                title={t("common.delete")}
+              >
+                {isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 ml-1">
+                {expanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -191,6 +234,35 @@ export function PlaceCard({ place }: PlaceCardProps) {
           </div>
         </CardContent>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("common.delete")}</DialogTitle>
+            <DialogDescription>
+              {t("dashboard.savedPlaces.deleteConfirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isPending}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeletePlace}
+              disabled={isPending}
+            >
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t("common.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
