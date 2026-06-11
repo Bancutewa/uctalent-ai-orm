@@ -47,24 +47,25 @@ export async function fetchReviewsAction(placeId: string) {
     };
 
     const reviews = (response.reviews ?? [])
-       .slice(0, 5)
-       .map((r: SerpApiReviewRaw) => ({
-         review_id: r.review_id,
-         author_name: r.user?.name ?? "Ẩn danh",
-         author_avatar: r.user?.thumbnail,
-         rating: r.rating,
-         content: r.snippet ?? "",
-         source: "google",
-         url: r.user?.link,
-         created_at: r.iso_date
-           ? new Date(r.iso_date).toISOString()
-           : new Date().toISOString(),
-         images: r.images ?? [],
-       }));
+      .slice(0, 5)
+      .map((r: SerpApiReviewRaw) => ({
+        review_id: r.review_id,
+        author_name: r.user?.name ?? "Ẩn danh",
+        author_avatar: r.user?.thumbnail,
+        rating: r.rating,
+        content: r.snippet ?? "",
+        source: "google",
+        url: r.user?.link,
+        created_at: r.iso_date
+          ? new Date(r.iso_date).toISOString()
+          : new Date().toISOString(),
+        images: r.images ?? [],
+      }));
 
     return { success: true as const, data: { place_info, reviews } };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
     console.error("SerpApi Error:", error);
     return {
       success: false as const,
@@ -86,6 +87,8 @@ export async function searchPlacesAction(query: string) {
       engine: "google_maps",
       q: query,
       hl: "vi",
+      gl: "vn",
+      ll: "@16.0474,108.2062,6z",
       api_key: serpConfig.apiKey,
     });
 
@@ -93,22 +96,28 @@ export async function searchPlacesAction(query: string) {
       return { success: false as const, error: response.error };
     }
 
-    const results = (response.local_results ?? []).map((r: any) => ({
-      title: r.title,
-      place_id: r.place_id,
-      address: r.address,
-      rating: r.rating,
-      reviews: r.reviews,
-      type: r.type,
-    }));
+    const rawResults: any[] = response.local_results ?? [];
+
+    const results = rawResults
+      .map((r: any) => ({
+        title: r.title,
+        place_id: r.place_id ?? r.data_id ?? null,
+        address: r.address,
+        rating: r.rating,
+        reviews: r.reviews,
+        type: r.type,
+      }))
+      .filter((r) => Boolean(r.place_id));
 
     return { success: true as const, data: results };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
     console.error("SerpApi Search Error:", error);
     return {
       success: false as const,
-      error: errorMessage || "Đã có lỗi xảy ra khi gọi SerpApi (Search)",
+      error:
+        errorMessage || "Đã có lỗi xảy ra khi gọi SerpApi (Search)",
     };
   }
 }
