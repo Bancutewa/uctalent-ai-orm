@@ -112,29 +112,31 @@ export function FetchBar() {
 
           <form
             onSubmit={handleFetch}
-            className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center"
+            className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start"
           >
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-              <Input
-                placeholder={t("dashboard.fetchBar.placeholder")}
-                value={placeId}
-                onChange={(e) => setPlaceId(e.target.value)}
-                className="pl-10 pr-4 bg-background/40"
+            <div className="flex-1 flex flex-col gap-2">
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+                <Input
+                  placeholder={t("dashboard.fetchBar.placeholder")}
+                  value={placeId}
+                  onChange={(e) => setPlaceId(e.target.value)}
+                  className="pl-10 pr-4 bg-background/40"
+                  disabled={isLoading}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setSearchDialogOpen(true)}
+                className="text-xs text-primary/80 hover:text-primary hover:underline self-start flex items-center gap-1 transition-colors pl-1"
                 disabled={isLoading}
-              />
+              >
+                <Search className="h-3 w-3" />
+                {/* @ts-ignore */}
+                {t("dashboard.fetchBar.findPlaceHelp")}
+              </button>
             </div>
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isLoading}
-                onClick={() => setSearchDialogOpen(true)}
-                className="px-4 shadow-sm"
-              >
-                <Search className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{t("dashboard.fetchBar.searchBtn")}</span>
-              </Button>
               <Button
               type="submit"
               disabled={isLoading}

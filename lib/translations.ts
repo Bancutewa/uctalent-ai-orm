@@ -34,6 +34,7 @@ export const translations = {
         button: "Lấy Review",
         loading: "Đang tải...",
         searchBtn: "Tìm địa điểm",
+        findPlaceHelp: "Không biết Place ID? Tìm tại đây",
       },
       searchDialog: {
         title: "Tìm kiếm địa điểm",
@@ -125,6 +126,7 @@ export const translations = {
         button: "Fetch Reviews",
         loading: "Loading...",
         searchBtn: "Search Place",
+        findPlaceHelp: "Don't know the Place ID? Search here",
       },
       searchDialog: {
         title: "Search Place",
